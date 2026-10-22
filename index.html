@@ -308,311 +308,247 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('open'); });
 </script>
   
-<!-- GALECREST: INTERACTIVE STORY -->
-<style>
-  #galecrest-game {
-    max-width: 850px;
-    margin: 70px auto;
-    padding: 28px;
-    color: #eeeaff;
-    background: linear-gradient(145deg, #17132f, #080b1b);
-    border: 1px solid #7664bd;
-    border-radius: 18px;
-    font-family: Georgia, serif;
-    box-shadow: 0 0 35px #7658bd33;
-  }
-
-  #galecrest-game h2 {
-    color: #d5c5ff;
-    font-size: 2rem;
-  }
-
-  #galecrest-game p {
-    font-size: 1.08rem;
-    line-height: 1.8;
-  }
-
-  #galecrest-choices {
-    display: grid;
-    gap: 12px;
-    margin-top: 24px;
-  }
-
-  #galecrest-choices button,
-  #galecrest-restart {
-    padding: 14px 18px;
-    color: #f4efff;
-    background: #282044;
-    border: 1px solid #8c78cf;
-    border-radius: 10px;
-    text-align: left;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.2s, transform 0.2s;
-  }
-
-  #galecrest-choices button:hover,
-  #galecrest-restart:hover {
-    background: #48356f;
-    transform: translateY(-2px);
-  }
-
-  #galecrest-status {
-    color: #bca9ee;
-    font-size: 0.9rem !important;
-  }
-
-  #galecrest-ending {
-    color: #f0d99a;
-  }
-</style>
-
-<section id="galecrest-game">
-  <p id="galecrest-status">GALECREST ARCHIVES · CHAPTER 01</p>
-  <h2 id="galecrest-title">The Star That Should Not Exist</h2>
-
-  <p id="galecrest-text">
-    Before the first god opened its eyes, before time learned to move,
-    there was the Primordial Void. Nothing existed, and nothing was missing.
-
-    Then, at the edge of creation, a star appeared where no star belonged.
-
-    You stand before an ancient observatory. The star pulses above you.
-    Somewhere inside the building, a bell rings despite having no clapper.
-
-    What will you do?
-  </p>
-
-  <div id="galecrest-choices">
-    <button onclick="galecrestChoose('observe')">
-      Study the impossible star.
-    </button>
-    <button onclick="galecrestChoose('enter')">
-      Enter the abandoned observatory.
-    </button>
-    <button onclick="galecrestChoose('leave')">
-      Walk away. Some mysteries are warnings.
-    </button>
+<!-- GALECREST: CHOICE-DRIVEN OPENING -->
+<section class="section" id="galecrest-story">
+  <div class="section-head">
+    <p class="eyebrow">A story shaped by you</p>
+    <h2 id="galecrest-story-title">A Forgotten Place</h2>
+    <p class="section-intro" id="galecrest-story-text">
+      You find yourself in an old archive whose existence seems to have been forgotten by the world.
+      Dust covers the shelves. Ancient manuscripts lie scattered across a stone table. Strange symbols
+      mark the walls, and a sealed door stands at the far end of the chamber.
+      You do not know who built this place, why it was abandoned, or why some records appear to have
+      been concealed. Nothing tells you what you must do. For now, the choice is yours.
+    </p>
   </div>
 
-  <p id="galecrest-ending" aria-live="polite"></p>
+  <div class="grid" id="galecrest-story-choices">
+    <article class="card story-choice">
+      <span class="symbol">▤</span>
+      <h3>Study the manuscripts</h3>
+      <p>Search for forgotten history, strange claims, and fragments of knowledge.</p>
+      <button type="button" data-story-choice="manuscript">Choose this path ↗</button>
+    </article>
+    <article class="card story-choice">
+      <span class="symbol">⌘</span>
+      <h3>Investigate the symbols</h3>
+      <p>Look for patterns and meanings hidden in the walls.</p>
+      <button type="button" data-story-choice="symbols">Choose this path ↗</button>
+    </article>
+    <article class="card story-choice">
+      <span class="symbol">↗</span>
+      <h3>Ignore the archive and leave</h3>
+      <p>You have no reason to trust this place. Curiosity is not an obligation.</p>
+      <button type="button" data-story-choice="leave">Choose this path ↗</button>
+    </article>
+    <article class="card story-choice">
+      <span class="symbol">▣</span>
+      <h3>Examine the sealed door</h3>
+      <p>Find out what someone went to the trouble of hiding.</p>
+      <button type="button" data-story-choice="door">Choose this path ↗</button>
+    </article>
+  </div>
 
-  <button id="galecrest-restart" onclick="galecrestRestart()"
-    style="display:none; margin-top:18px;">
-    Begin a new journey ↻
-  </button>
+  <div class="card" id="galecrest-story-scene" hidden aria-live="polite">
+    <p class="eyebrow" id="galecrest-story-branch-label">YOUR PATH</p>
+    <h3 id="galecrest-story-branch-title"></h3>
+    <p id="galecrest-story-branch-text"></p>
+    <div class="actions" id="galecrest-story-next-choices"></div>
+  </div>
+
+  <p class="section-intro" id="galecrest-story-status" aria-live="polite">
+    Your choices shape what you discover. Other paths remain possible.
+  </p>
+  <div class="actions">
+    <button class="btn btn-quiet" type="button" id="galecrest-story-restart">Restart this chapter</button>
+  </div>
 </section>
 
+<style>
+  #galecrest-story .story-choice { display:flex; flex-direction:column; align-items:flex-start; }
+  #galecrest-story .story-choice button { margin-top:auto; }
+  #galecrest-story-scene { margin-top:1.5rem; }
+  #galecrest-story-scene[hidden] { display:none; }
+  #galecrest-story-next-choices { margin-top:1rem; gap:.75rem; flex-wrap:wrap; }
+  #galecrest-story-status { margin-top:1rem; font-size:.92rem; }
+</style>
+
 <script>
-(function () {
-  const title = document.getElementById("galecrest-title");
-  const story = document.getElementById("galecrest-text");
-  const choices = document.getElementById("galecrest-choices");
-  const status = document.getElementById("galecrest-status");
-  const ending = document.getElementById("galecrest-ending");
-  const restart = document.getElementById("galecrest-restart");
+(() => {
+  const title = document.getElementById('galecrest-story-title');
+  const text = document.getElementById('galecrest-story-text');
+  const choices = document.getElementById('galecrest-story-choices');
+  const scene = document.getElementById('galecrest-story-scene');
+  const branchLabel = document.getElementById('galecrest-story-branch-label');
+  const branchTitle = document.getElementById('galecrest-story-branch-title');
+  const branchText = document.getElementById('galecrest-story-branch-text');
+  const nextChoices = document.getElementById('galecrest-story-next-choices');
+  const status = document.getElementById('galecrest-story-status');
+  const restart = document.getElementById('galecrest-story-restart');
 
-  let path = [];
+  const openingTitle = 'A Forgotten Place';
+  const openingText = 'You find yourself in an old archive whose existence seems to have been forgotten by the world. Dust covers the shelves. Ancient manuscripts lie scattered across a stone table. Strange symbols mark the walls, and a sealed door stands at the far end of the chamber. You do not know who built this place, why it was abandoned, or why some records appear to have been concealed. Nothing tells you what you must do. For now, the choice is yours.';
 
-  const scenes = {
-    observe: {
-      title: "A Message in the Light",
-      text: "You study the star. Its light bends into symbols older than the gods. One sentence becomes clear: 'The Void remembers what creation forgot.' The star reacts to your attention, revealing a second light hidden behind it.",
+  const paths = {
+    manuscript: {
+      title: 'Ink Older Than the Gods',
+      text: 'The manuscript describes beings older than the gods worshipped by mortals. It calls them concepts, but speaks of them as living minds rather than distant laws. Most of the page is damaged. One surviving sentence reads: “A ruler may command a domain without being the source of its existence.”',
       options: [
-        ["Follow the hidden light", "follow"],
-        ["Record the symbols and enter the observatory", "record"]
+        { label: 'Copy the surviving sentence', next: 'copy' },
+        { label: 'Compare it with the wall symbols', next: 'compare' },
+        { label: 'Put the manuscript back', next: 'back' }
       ]
     },
-
-    enter: {
-      title: "The Silent Observatory",
-      text: "Dust floats upward as you enter. A circular map covers the floor, depicting eras that no historian has recorded. At its centre rests a sealed door bearing two symbols: Knowledge and Nothing.",
+    symbols: {
+      title: 'Marks Without a Key',
+      text: 'The symbols repeat in groups, but they are not quite letters. Several appear beside damaged names in the archive’s oldest records. You cannot translate them yet. You can, however, make a rubbing before the marks fade into the stone.',
       options: [
-        ["Open the door marked Knowledge", "knowledge"],
-        ["Touch the symbol of Nothing", "nothing"]
+        { label: 'Make a rubbing of the symbols', next: 'rubbing' },
+        { label: 'Search the shelves for a matching mark', next: 'compare' },
+        { label: 'Leave the symbols alone', next: 'back' }
       ]
     },
-
     leave: {
-      title: "The Road Beyond Creation",
-      text: "You turn away. The star vanishes, but its reflection remains in every puddle and window. On the road, a stranger wearing a mask offers you a small silver key. 'You chose not to look,' they say. 'That is still a choice.'",
+      title: 'Beyond the Archive',
+      text: 'You leave the forgotten chamber without touching its records. Outside, the world continues as it always has: temples, stories, and familiar gods. You notice a public noticeboard nearby, where a travelling scholar is asking for help identifying an unusual symbol found on an old ruin.',
       options: [
-        ["Accept the key", "key"],
-        ["Ask the stranger who they are", "stranger"]
+        { label: 'Speak to the scholar', next: 'scholar' },
+        { label: 'Continue on your way', next: 'walkaway' }
       ]
     },
-
-    follow: {
-      title: "Beyond the Known Sky",
-      text: "You follow the hidden light through a crack in the night sky. Beyond it lies a sea of stars, each containing a memory of a world that never came to be. One star begins to speak your name.",
+    door: {
+      title: 'The Sealed Door',
+      text: 'The door has no handle and no visible lock. Around its frame are shallow grooves, as if a symbol was once carved there and later removed. The stone is old, but the seal appears to have been maintained long after the archive was abandoned.',
       options: [
-        ["Answer the star", "answer"],
-        ["Keep your name secret", "secret"]
+        { label: 'Study the grooves', next: 'rubbing' },
+        { label: 'Return to the manuscripts', next: 'manuscript' },
+        { label: 'Leave the door sealed', next: 'back' }
       ]
     },
-
-    record: {
-      title: "The First Archivist",
-      text: "Your notes begin writing themselves. The symbols describe a forgotten choice made at the birth of existence. You may be the first person to discover the record, but something else appears to be reading over your shoulder.",
+    copy: {
+      title: 'A Sentence Preserved',
+      text: 'You copy the sentence into your notes. It does not tell you which beings the author meant, but it challenges a belief repeated in temples: that the gods are the ultimate origin of every power they govern.',
       options: [
-        ["Turn around", "turn"],
-        ["Keep reading", "read"]
+        { label: 'Look for the author’s name', next: 'author' },
+        { label: 'Return to the archive choices', next: 'back' }
       ]
     },
-
-    knowledge: {
-      title: "The Library Outside Time",
-      text: "The door opens into a library without walls. Books contain the memories of gods not yet born. A librarian with silver eyes offers you one book, warning that knowledge always changes the knower.",
+    compare: {
+      title: 'A Repeated Pattern',
+      text: 'The same mark appears beside a damaged passage about ancient beings. The manuscript and the wall may have been made by people who shared knowledge, though the evidence is too incomplete to prove it.',
       options: [
-        ["Read the book", "read"],
-        ["Ask what the librarian is hiding", "turn"]
+        { label: 'Record the pattern', next: 'rubbing' },
+        { label: 'Search for the author', next: 'author' }
       ]
     },
-
-    nothing: {
-      title: "The Unwritten Room",
-      text: "The symbol dissolves beneath your fingers. The room beyond contains no objects, no sound, not even a shadow. Yet you feel that something is waiting here, not for you to arrive, but for you to remember.",
+    rubbing: {
+      title: 'A Trace of the Past',
+      text: 'You preserve the mark on a sheet of paper. It is now a clue you can carry elsewhere, even if its meaning remains unknown. The journal records that you found it, not what it must mean.',
       options: [
-        ["Speak into the silence", "answer"],
-        ["Leave without disturbing it", "secret"]
+        { label: 'Look for a matching record', next: 'compare' },
+        { label: 'End this visit for now', next: 'back' }
       ]
     },
-
-    key: {
-      title: "The Locked Horizon",
-      text: "The silver key opens a gate beneath the observatory. Beyond it, the horizon is folded like paper. You discover a passage leading toward the first dawn, where a choice once split the fate of creation.",
+    scholar: {
+      title: 'The Travelling Scholar',
+      text: 'The scholar recognises the shape but refuses to claim a translation. They have seen it in a fragment that mentions knowledge once preserved by the earliest supernatural beings. They offer to compare notes if you bring a clearer copy.',
       options: [
-        ["Step through the gate", "dawn"],
-        ["Keep the key for another day", "secret"]
+        { label: 'Ask where the fragment was found', next: 'author' },
+        { label: 'Keep the clue and leave', next: 'walkaway' }
       ]
     },
-
-    stranger: {
-      title: "The One Who Remembers",
-      text: "The stranger removes their mask. Beneath it is no face, only a sky full of dying constellations. 'I am what remains when stories end,' they whisper. 'And yours has only just begun.'",
+    author: {
+      title: 'The Missing Name',
+      text: 'The author’s name has been scraped away. A small note remains: “Preserve this for those who ask what came before the gods.” Whoever wrote it expected the old account to be forgotten, but you cannot yet know why.',
       options: [
-        ["Ask about your destiny", "dawn"],
-        ["Refuse to be given a destiny", "secret"]
+        { label: 'Return to the archive choices', next: 'back' }
       ]
     },
-
-    answer: {
-      title: "The Star's Reply",
-      text: "The star answers with a memory: you stood here before, in another age, when the universe was still deciding whether it should exist. You cannot remember that life, but the star remembers you.",
+    walkaway: {
+      title: 'A Road Still Open',
+      text: 'You leave without learning what the archive contains. The world has other paths, and this mystery will remain here until you choose to return. Leaving is a real choice, not a failed one.',
       options: [
-        ["Accept the memory", "memory"],
-        ["Reject a past you cannot remember", "freedom"]
+        { label: 'Return to the opening', next: 'back' }
       ]
     },
-
-    secret: {
-      title: "The Unchosen Path",
-      text: "You refuse the invitation. The world continues, apparently unchanged. But a tiny silver mark appears on your hand. Somewhere, an unopened door has begun to wait for you.",
-      ending: "ENDING: THE QUIET WITNESS"
-    },
-
-    read: {
-      title: "The Price of Knowing",
-      text: "The final page contains your current story, including every decision you have made. Beneath it is a blank page. The librarian tells you that the next words belong to you alone.",
+    back: {
+      title: 'The Choice Remains Yours',
+      text: 'You take a step back and consider the archive again. You may follow another lead, revisit a place, or leave. What you have already discovered remains part of your journey.',
       options: [
-        ["Write a new beginning", "freedom"],
-        ["Search for the author", "turn"]
+        { label: 'Return to the archive choices', next: 'opening' }
       ]
-    },
-
-    turn: {
-      title: "The Watcher Behind You",
-      text: "You turn and meet a figure woven from darkness and distant galaxies. It has watched every civilisation rise and disappear. 'I do not decide your fate,' it says. 'I preserve the choices you make.'",
-      options: [
-        ["Ask to see the beginning", "dawn"],
-        ["Demand the freedom to choose", "freedom"]
-      ]
-    },
-
-    memory: {
-      title: "The First Memory",
-      text: "Your forgotten memory returns. At the beginning of creation, you chose to let the universe exist, knowing it would eventually change beyond recognition. The star dims, not in defeat, but in recognition.",
-      ending: "ENDING: THE KEEPER OF MEMORY"
-    },
-
-    dawn: {
-      title: "Where Creation Began",
-      text: "You reach the place where the first dawn began. There are no gods here, no laws, and no promises. Only the possibility of everything that might exist. For the first time, the universe waits for your decision.",
-      ending: "ENDING: THE FIRST DAWN"
-    },
-
-    freedom: {
-      title: "A Universe of Your Own",
-      text: "You refuse to let ancient powers write your future. The symbols around you break apart, becoming countless new stars. Somewhere, an entirely new path begins, one that no archive has ever recorded.",
-      ending: "ENDING: THE UNWRITTEN FUTURE"
     }
   };
 
-  function showScene(id) {
-    const scene = scenes[id];
-    if (!scene) return;
-
-    title.textContent = scene.title;
-    story.textContent = scene.text;
-    ending.textContent = "";
-    status.textContent = "GALECREST ARCHIVES · DECISIONS MADE: " + path.length;
-    choices.replaceChildren();
-
-    if (scene.ending) {
-      ending.textContent = scene.ending + " · Your choices shaped this journey.";
-      restart.style.display = "inline-block";
+  const visited = new Set();
+  function showBranch(key) {
+    if (key === 'opening') {
+      scene.hidden = true;
+      choices.hidden = false;
+      title.textContent = openingTitle;
+      text.textContent = openingText;
+      status.textContent = 'Your choices shape what you discover. Other paths remain possible.';
       return;
     }
+    if (key === 'back') {
+      scene.hidden = false;
+      choices.hidden = true;
+      branchLabel.textContent = 'YOUR PATH';
+      branchTitle.textContent = paths.back.title;
+      branchText.textContent = paths.back.text;
+      renderOptions(paths.back.options);
+      return;
+    }
+    const item = paths[key];
+    if (!item) return;
+    visited.add(key);
+    scene.hidden = false;
+    choices.hidden = true;
+    branchLabel.textContent = 'DISCOVERY';
+    branchTitle.textContent = item.title;
+    branchText.textContent = item.text;
+    renderOptions(item.options);
+    status.textContent = 'Discoveries recorded this visit: ' + visited.size + '. Your route can differ from another player’s.';
+  }
 
-    restart.style.display = "none";
-
-    scene.options.forEach(function (option) {
-      const button = document.createElement("button");
-      button.textContent = option[0];
-      button.addEventListener("click", function () {
-        path.push({
-          scene: id,
-          choice: option[0]
-        });
-        showScene(option[1]);
+  function renderOptions(options) {
+    nextChoices.replaceChildren();
+    options.forEach(option => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn-quiet';
+      button.textContent = option.label;
+      button.addEventListener('click', () => {
+        if (option.next === 'opening') {
+          scene.hidden = true;
+          choices.hidden = false;
+          title.textContent = openingTitle;
+          text.textContent = openingText;
+          status.textContent = 'Your choices shape what you discover. Other paths remain possible.';
+        } else {
+          showBranch(option.next);
+        }
       });
-      choices.appendChild(button);
+      nextChoices.appendChild(button);
     });
   }
 
-  window.galecrestChoose = function (id) {
-    if (!scenes[id]) return;
-    path.push({ scene: "beginning", choice: id });
-    showScene(id);
-  };
+  choices.querySelectorAll('[data-story-choice]').forEach(button => {
+    button.addEventListener('click', () => showBranch(button.dataset.storyChoice));
+  });
 
-  window.galecrestRestart = function () {
-    path = [];
-    title.textContent = "The Star That Should Not Exist";
-    story.textContent = "Before the first god opened its eyes, before time learned to move, there was the Primordial Void. Nothing existed, and nothing was missing. Then, at the edge of creation, a star appeared where no star belonged. You stand before an ancient observatory. The star pulses above you. Somewhere inside the building, a bell rings despite having no clapper. What will you do?";
-    status.textContent = "GALECREST ARCHIVES · CHAPTER 01";
-    ending.textContent = "";
-    choices.replaceChildren();
-
-    [
-      ["Study the impossible star.", "observe"],
-      ["Enter the abandoned observatory.", "enter"],
-      ["Walk away. Some mysteries are warnings.", "leave"]
-    ].forEach(function (option) {
-      const button = document.createElement("button");
-      button.textContent = option[0];
-      button.addEventListener("click", function () {
-        path.push({ scene: "beginning", choice: option[0] });
-        showScene(option[1]);
-      });
-      choices.appendChild(button);
-    });
-
-    restart.style.display = "none";
-  };
+  restart.addEventListener('click', () => {
+    visited.clear();
+    scene.hidden = true;
+    choices.hidden = false;
+    title.textContent = openingTitle;
+    text.textContent = openingText;
+    status.textContent = 'Chapter restarted. Your choices shape what you discover.';
+  });
 })();
 </script>
-<!-- END GALECREST INTERACTIVE STORY -->
+<!-- END GALECREST CHOICE-DRIVEN OPENING -->
+
 
 <!-- GALECREST LORE JOURNAL -->
 <style>
