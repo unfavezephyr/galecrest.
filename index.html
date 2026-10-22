@@ -614,6 +614,155 @@
 </script>
 <!-- END GALECREST INTERACTIVE STORY -->
 
+<!-- GALECREST LORE JOURNAL -->
+<style>
+  #galecrest-journal {
+    max-width: 850px;
+    margin: 24px auto 70px;
+    padding: 24px;
+    color: #eeeaff;
+    background: #100e24;
+    border: 1px solid #594b89;
+    border-radius: 16px;
+    font-family: Georgia, serif;
+  }
+
+  #galecrest-journal h2 {
+    color: #d5c5ff;
+  }
+
+  #galecrest-journal-list {
+    padding-left: 22px;
+    line-height: 1.8;
+  }
+
+  #galecrest-journal button {
+    padding: 10px 14px;
+    color: #eeeaff;
+    background: #282044;
+    border: 1px solid #8c78cf;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  #galecrest-journal small {
+    color: #bca9ee;
+  }
+</style>
+
+<section id="galecrest-journal">
+  <small>PERSONAL ARCHIVE · GALECREST</small>
+  <h2>✧ Lore Journal</h2>
+  <p>
+    Every discovery leaves a trace. This journal records the story
+    scenes you have visited, so you can revisit their lore.
+  </p>
+
+  <p id="galecrest-journal-count">Discoveries recorded: 0</p>
+  <ol id="galecrest-journal-list">
+    <li>Your journey has not begun.</li>
+  </ol>
+
+  <button id="galecrest-journal-clear">Clear journal</button>
+</section>
+
+<script>
+(function () {
+  const title = document.getElementById("galecrest-title");
+  const story = document.getElementById("galecrest-text");
+  const list = document.getElementById("galecrest-journal-list");
+  const count = document.getElementById("galecrest-journal-count");
+  const clear = document.getElementById("galecrest-journal-clear");
+
+  const storageKey = "galecrest-lore-journal-v1";
+  let discoveries = [];
+
+  try {
+    discoveries = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    if (!Array.isArray(discoveries)) discoveries = [];
+  } catch (error) {
+    discoveries = [];
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(discoveries));
+    } catch (error) {
+      // The journal can still work for this visit if storage is unavailable.
+    }
+  }
+
+  function render() {
+    count.textContent = "Discoveries recorded: " + discoveries.length;
+    list.replaceChildren();
+
+    if (discoveries.length === 0) {
+      const item = document.createElement("li");
+      item.textContent = "Your journey has not begun.";
+      list.appendChild(item);
+      return;
+    }
+
+    discoveries.forEach(function (entry) {
+      const item = document.createElement("li");
+      const heading = document.createElement("strong");
+      const description = document.createElement("p");
+
+      heading.textContent = entry.title;
+      description.textContent = entry.text;
+
+      item.appendChild(heading);
+      item.appendChild(description);
+      list.appendChild(item);
+    });
+  }
+
+  function recordScene() {
+    if (!title || !story) return;
+
+    const sceneTitle = title.textContent.trim();
+    const sceneText = story.textContent.trim();
+
+    if (!sceneTitle || !sceneText) return;
+
+    // Record each scene once, even if it is revisited.
+    if (discoveries.some(function (entry) {
+      return entry.title === sceneTitle;
+    })) return;
+
+    discoveries.push({
+      title: sceneTitle,
+      text: sceneText
+    });
+
+    save();
+    render();
+  }
+
+  // Watch for scenes displayed by the existing branching story.
+  if (title && story) {
+    const observer = new MutationObserver(recordScene);
+    observer.observe(title, { childList: true, characterData: true, subtree: true });
+    observer.observe(story, { childList: true, characterData: true, subtree: true });
+
+    recordScene();
+  }
+
+  clear.addEventListener("click", function () {
+    if (!window.confirm("Clear all discoveries from your Lore Journal?")) {
+      return;
+    }
+
+    discoveries = [];
+    save();
+    render();
+  });
+
+  render();
+})();
+</script>
+<!-- END GALECREST LORE JOURNAL -->
+
 </body>
 </html>
 
