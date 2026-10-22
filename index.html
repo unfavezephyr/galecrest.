@@ -307,5 +307,313 @@
   modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('open'); });
 </script>
+  
+<!-- GALECREST: INTERACTIVE STORY -->
+<style>
+  #galecrest-game {
+    max-width: 850px;
+    margin: 70px auto;
+    padding: 28px;
+    color: #eeeaff;
+    background: linear-gradient(145deg, #17132f, #080b1b);
+    border: 1px solid #7664bd;
+    border-radius: 18px;
+    font-family: Georgia, serif;
+    box-shadow: 0 0 35px #7658bd33;
+  }
+
+  #galecrest-game h2 {
+    color: #d5c5ff;
+    font-size: 2rem;
+  }
+
+  #galecrest-game p {
+    font-size: 1.08rem;
+    line-height: 1.8;
+  }
+
+  #galecrest-choices {
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  #galecrest-choices button,
+  #galecrest-restart {
+    padding: 14px 18px;
+    color: #f4efff;
+    background: #282044;
+    border: 1px solid #8c78cf;
+    border-radius: 10px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  #galecrest-choices button:hover,
+  #galecrest-restart:hover {
+    background: #48356f;
+    transform: translateY(-2px);
+  }
+
+  #galecrest-status {
+    color: #bca9ee;
+    font-size: 0.9rem !important;
+  }
+
+  #galecrest-ending {
+    color: #f0d99a;
+  }
+</style>
+
+<section id="galecrest-game">
+  <p id="galecrest-status">GALECREST ARCHIVES · CHAPTER 01</p>
+  <h2 id="galecrest-title">The Star That Should Not Exist</h2>
+
+  <p id="galecrest-text">
+    Before the first god opened its eyes, before time learned to move,
+    there was the Primordial Void. Nothing existed, and nothing was missing.
+
+    Then, at the edge of creation, a star appeared where no star belonged.
+
+    You stand before an ancient observatory. The star pulses above you.
+    Somewhere inside the building, a bell rings despite having no clapper.
+
+    What will you do?
+  </p>
+
+  <div id="galecrest-choices">
+    <button onclick="galecrestChoose('observe')">
+      Study the impossible star.
+    </button>
+    <button onclick="galecrestChoose('enter')">
+      Enter the abandoned observatory.
+    </button>
+    <button onclick="galecrestChoose('leave')">
+      Walk away. Some mysteries are warnings.
+    </button>
+  </div>
+
+  <p id="galecrest-ending" aria-live="polite"></p>
+
+  <button id="galecrest-restart" onclick="galecrestRestart()"
+    style="display:none; margin-top:18px;">
+    Begin a new journey ↻
+  </button>
+</section>
+
+<script>
+(function () {
+  const title = document.getElementById("galecrest-title");
+  const story = document.getElementById("galecrest-text");
+  const choices = document.getElementById("galecrest-choices");
+  const status = document.getElementById("galecrest-status");
+  const ending = document.getElementById("galecrest-ending");
+  const restart = document.getElementById("galecrest-restart");
+
+  let path = [];
+
+  const scenes = {
+    observe: {
+      title: "A Message in the Light",
+      text: "You study the star. Its light bends into symbols older than the gods. One sentence becomes clear: 'The Void remembers what creation forgot.' The star reacts to your attention, revealing a second light hidden behind it.",
+      options: [
+        ["Follow the hidden light", "follow"],
+        ["Record the symbols and enter the observatory", "record"]
+      ]
+    },
+
+    enter: {
+      title: "The Silent Observatory",
+      text: "Dust floats upward as you enter. A circular map covers the floor, depicting eras that no historian has recorded. At its centre rests a sealed door bearing two symbols: Knowledge and Nothing.",
+      options: [
+        ["Open the door marked Knowledge", "knowledge"],
+        ["Touch the symbol of Nothing", "nothing"]
+      ]
+    },
+
+    leave: {
+      title: "The Road Beyond Creation",
+      text: "You turn away. The star vanishes, but its reflection remains in every puddle and window. On the road, a stranger wearing a mask offers you a small silver key. 'You chose not to look,' they say. 'That is still a choice.'",
+      options: [
+        ["Accept the key", "key"],
+        ["Ask the stranger who they are", "stranger"]
+      ]
+    },
+
+    follow: {
+      title: "Beyond the Known Sky",
+      text: "You follow the hidden light through a crack in the night sky. Beyond it lies a sea of stars, each containing a memory of a world that never came to be. One star begins to speak your name.",
+      options: [
+        ["Answer the star", "answer"],
+        ["Keep your name secret", "secret"]
+      ]
+    },
+
+    record: {
+      title: "The First Archivist",
+      text: "Your notes begin writing themselves. The symbols describe a forgotten choice made at the birth of existence. You may be the first person to discover the record, but something else appears to be reading over your shoulder.",
+      options: [
+        ["Turn around", "turn"],
+        ["Keep reading", "read"]
+      ]
+    },
+
+    knowledge: {
+      title: "The Library Outside Time",
+      text: "The door opens into a library without walls. Books contain the memories of gods not yet born. A librarian with silver eyes offers you one book, warning that knowledge always changes the knower.",
+      options: [
+        ["Read the book", "read"],
+        ["Ask what the librarian is hiding", "turn"]
+      ]
+    },
+
+    nothing: {
+      title: "The Unwritten Room",
+      text: "The symbol dissolves beneath your fingers. The room beyond contains no objects, no sound, not even a shadow. Yet you feel that something is waiting here, not for you to arrive, but for you to remember.",
+      options: [
+        ["Speak into the silence", "answer"],
+        ["Leave without disturbing it", "secret"]
+      ]
+    },
+
+    key: {
+      title: "The Locked Horizon",
+      text: "The silver key opens a gate beneath the observatory. Beyond it, the horizon is folded like paper. You discover a passage leading toward the first dawn, where a choice once split the fate of creation.",
+      options: [
+        ["Step through the gate", "dawn"],
+        ["Keep the key for another day", "secret"]
+      ]
+    },
+
+    stranger: {
+      title: "The One Who Remembers",
+      text: "The stranger removes their mask. Beneath it is no face, only a sky full of dying constellations. 'I am what remains when stories end,' they whisper. 'And yours has only just begun.'",
+      options: [
+        ["Ask about your destiny", "dawn"],
+        ["Refuse to be given a destiny", "secret"]
+      ]
+    },
+
+    answer: {
+      title: "The Star's Reply",
+      text: "The star answers with a memory: you stood here before, in another age, when the universe was still deciding whether it should exist. You cannot remember that life, but the star remembers you.",
+      options: [
+        ["Accept the memory", "memory"],
+        ["Reject a past you cannot remember", "freedom"]
+      ]
+    },
+
+    secret: {
+      title: "The Unchosen Path",
+      text: "You refuse the invitation. The world continues, apparently unchanged. But a tiny silver mark appears on your hand. Somewhere, an unopened door has begun to wait for you.",
+      ending: "ENDING: THE QUIET WITNESS"
+    },
+
+    read: {
+      title: "The Price of Knowing",
+      text: "The final page contains your current story, including every decision you have made. Beneath it is a blank page. The librarian tells you that the next words belong to you alone.",
+      options: [
+        ["Write a new beginning", "freedom"],
+        ["Search for the author", "turn"]
+      ]
+    },
+
+    turn: {
+      title: "The Watcher Behind You",
+      text: "You turn and meet a figure woven from darkness and distant galaxies. It has watched every civilisation rise and disappear. 'I do not decide your fate,' it says. 'I preserve the choices you make.'",
+      options: [
+        ["Ask to see the beginning", "dawn"],
+        ["Demand the freedom to choose", "freedom"]
+      ]
+    },
+
+    memory: {
+      title: "The First Memory",
+      text: "Your forgotten memory returns. At the beginning of creation, you chose to let the universe exist, knowing it would eventually change beyond recognition. The star dims, not in defeat, but in recognition.",
+      ending: "ENDING: THE KEEPER OF MEMORY"
+    },
+
+    dawn: {
+      title: "Where Creation Began",
+      text: "You reach the place where the first dawn began. There are no gods here, no laws, and no promises. Only the possibility of everything that might exist. For the first time, the universe waits for your decision.",
+      ending: "ENDING: THE FIRST DAWN"
+    },
+
+    freedom: {
+      title: "A Universe of Your Own",
+      text: "You refuse to let ancient powers write your future. The symbols around you break apart, becoming countless new stars. Somewhere, an entirely new path begins, one that no archive has ever recorded.",
+      ending: "ENDING: THE UNWRITTEN FUTURE"
+    }
+  };
+
+  function showScene(id) {
+    const scene = scenes[id];
+    if (!scene) return;
+
+    title.textContent = scene.title;
+    story.textContent = scene.text;
+    ending.textContent = "";
+    status.textContent = "GALECREST ARCHIVES · DECISIONS MADE: " + path.length;
+    choices.replaceChildren();
+
+    if (scene.ending) {
+      ending.textContent = scene.ending + " · Your choices shaped this journey.";
+      restart.style.display = "inline-block";
+      return;
+    }
+
+    restart.style.display = "none";
+
+    scene.options.forEach(function (option) {
+      const button = document.createElement("button");
+      button.textContent = option[0];
+      button.addEventListener("click", function () {
+        path.push({
+          scene: id,
+          choice: option[0]
+        });
+        showScene(option[1]);
+      });
+      choices.appendChild(button);
+    });
+  }
+
+  window.galecrestChoose = function (id) {
+    if (!scenes[id]) return;
+    path.push({ scene: "beginning", choice: id });
+    showScene(id);
+  };
+
+  window.galecrestRestart = function () {
+    path = [];
+    title.textContent = "The Star That Should Not Exist";
+    story.textContent = "Before the first god opened its eyes, before time learned to move, there was the Primordial Void. Nothing existed, and nothing was missing. Then, at the edge of creation, a star appeared where no star belonged. You stand before an ancient observatory. The star pulses above you. Somewhere inside the building, a bell rings despite having no clapper. What will you do?";
+    status.textContent = "GALECREST ARCHIVES · CHAPTER 01";
+    ending.textContent = "";
+    choices.replaceChildren();
+
+    [
+      ["Study the impossible star.", "observe"],
+      ["Enter the abandoned observatory.", "enter"],
+      ["Walk away. Some mysteries are warnings.", "leave"]
+    ].forEach(function (option) {
+      const button = document.createElement("button");
+      button.textContent = option[0];
+      button.addEventListener("click", function () {
+        path.push({ scene: "beginning", choice: option[0] });
+        showScene(option[1]);
+      });
+      choices.appendChild(button);
+    });
+
+    restart.style.display = "none";
+  };
+})();
+</script>
+<!-- END GALECREST INTERACTIVE STORY -->
+
 </body>
 </html>
+
